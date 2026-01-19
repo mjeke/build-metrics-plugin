@@ -80,13 +80,12 @@
                 <td class="pane">${build.status}</td>
                 <td class="pane"><a href="${rootURL}/${build.jobUrl}/">${build.jobName}</a></td>
                 <td class="pane">
-                     <a href="${rootURL}/${build.buildUrl}/console"><img src="${rootURL}/plugin/global-build-stats/icons/terminal.gif" /></a>
                      <a href="${rootURL}/${build.buildUrl}/">#${build.buildNumber}</a>
                 </td>
                 <td class="pane">
                      <a href="${rootURL}/${build.buildUrl}/">${build.buildDateString}</a>
                 </td>
-                <td class="pane">${build.duration}</td>
+                <td class="pane">${build.formattedDuration}</td>
                 <td class="pane">${build.nodeName}</td>
                 <td class="pane">${build.userName}</td>
                 <td class="pane">${build.description}</td>

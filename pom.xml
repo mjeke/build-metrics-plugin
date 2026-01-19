@@ -12,7 +12,7 @@
   <packaging>hpi</packaging>
   
   <properties>
-    <jenkins.version>2.60.3</jenkins.version>
+    <jenkins.version>2.73.3</jenkins.version>
     <java.level>8</java.level>
   </properties>
 
@@ -23,22 +23,61 @@
     <tag>HEAD</tag>
   </scm>
 	
-  <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
+  <!-- 配置多个仓库，确保能够找到所需的依赖 -->
   <repositories>
     <repository>
       <id>repo.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/public/</url>
+      <url>https://repo.jenkins-ci.org/public/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+    <repository>
+      <id>maven-central</id>
+      <url>https://repo.maven.apache.org/maven2/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
     </repository>
   </repositories>
 
   <pluginRepositories>
     <pluginRepository>
       <id>repo.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/public/</url>
+      <url>https://repo.jenkins-ci.org/public/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </pluginRepository>
+    <pluginRepository>
+      <id>maven-central</id>
+      <url>https://repo.maven.apache.org/maven2/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
     </pluginRepository>
   </pluginRepositories>
   
   <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.main</groupId>
+      <artifactId>jenkins-core</artifactId>
+      <version>${jenkins.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>global-build-stats</artifactId>
@@ -46,7 +85,7 @@
     </dependency>
   </dependencies>
   
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/build-metrics-plugin</url>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/build-metrics-plugin</url>
   <developers>
     <developer>
       <id>javamllama</id>
@@ -73,6 +112,17 @@
         <plugin>
           <artifactId>maven-release-plugin</artifactId>
           <version>2.5.3</version>
+        </plugin>
+        <!-- 显式指定hpi插件版本，适配3.12父POM -->
+        <plugin>
+          <groupId>org.jenkins-ci.tools</groupId>
+          <artifactId>maven-hpi-plugin</artifactId>
+          <version>3.12</version>
+        <configuration>
+          <!-- 补充缺失的minimumJavaVersion参数，值与java.level一致 -->
+          <minimumJavaVersion>${java.level}</minimumJavaVersion>
+          <jenkinsVersion>${jenkins.version}</jenkinsVersion>
+        </configuration>
         </plugin>
       </plugins>
     </pluginManagement>

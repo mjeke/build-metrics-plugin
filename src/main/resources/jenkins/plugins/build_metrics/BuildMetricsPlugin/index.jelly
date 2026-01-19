@@ -19,11 +19,18 @@
     <j:invoke var="escapedLauncherFilter" on="${it}" method="escapeAntiSlashes">
     	<j:arg type="java.lang.String" value="" />
     </j:invoke>
+    <!-- For an unknown reason, j:invokeStatic doesn't work here ! :( -->
+    <j:invoke var="escapedCauseFilter" on="${it}" method="escapeAntiSlashes">
+    	<j:arg type="java.lang.String" value="" />
+    </j:invoke>
   
   	<l:header>
     <script src="${rootURL}/plugin/global-build-stats/scripts/global-build-stats/standardFunctions.js"></script>
-    <script>var startDate = ${searchCriteria.start}; var endDate = ${searchCriteria.end};</script>
-    <script type="text/javascript">
+    <j:if test="${searchCriteria != null}">
+      <script>var startDate = ${searchCriteria.start}; var endDate = ${searchCriteria.end};</script>
+    </j:if>
+    <script src="${rootURL}/plugin/global-build-stats/scripts/global-build-stats/buildHistory.js"></script>
+    <script type="text/javascript"><![CDATA[
       FIELD_FILTER_ALL = "${FIELD_FILTER_ALL}";
       FIELD_FILTER_REGEX = "${FIELD_FILTER_REGEX}";
       LAUNCHER_SYSTEM_REGEX = "${LAUNCHER_SYSTEM_REGEX}";
@@ -32,8 +39,109 @@
       ESCAPED_JOB_FILTER = "${escapedJobFilter}";
       ESCAPED_NODE_FILTER = "${escapedNodeFilter}";
       ESCAPED_LAUNCHER_FILTER = "${escapedLauncherFilter}";
-    </script>
-    <script src="${rootURL}/plugin/global-build-stats/scripts/global-build-stats/buildHistory.js"></script>
+      ESCAPED_CAUSE_FILTER = "${escapedCauseFilter}";
+      
+      // Define time range selection handling - make it globally available
+      function timeRangeTypeSelected(timeRangeType) {
+        console.log('timeRangeTypeSelected called with type:', timeRangeType);
+        
+        // Get elements using native JavaScript
+        var rangeField = document.getElementById('searchBuild_range');
+        var rangeUnitsField = document.getElementById('searchBuild_rangeUnits');
+        var startTimeField = document.getElementById('searchBuild_startTime');
+        var endTimeField = document.getElementById('searchBuild_endTime');
+        
+        if (timeRangeType === 'relative') {
+          console.log('Enabling relative time range, disabling absolute time range');
+          // Enable relative time range inputs
+          rangeField.disabled = false;
+          rangeUnitsField.disabled = false;
+          // Disable absolute time range inputs
+          startTimeField.disabled = true;
+          endTimeField.disabled = true;
+        } else {
+          console.log('Enabling absolute time range, disabling relative time range');
+          // Disable relative time range inputs
+          rangeField.disabled = true;
+          rangeUnitsField.disabled = true;
+          // Enable absolute time range inputs
+          startTimeField.disabled = false;
+          endTimeField.disabled = false;
+        }
+        
+        // Log final state
+        console.log('Final state:');
+        console.log('searchBuild_range.disabled:', rangeField.disabled);
+        console.log('searchBuild_rangeUnits.disabled:', rangeUnitsField.disabled);
+        console.log('searchBuild_startTime.disabled:', startTimeField.disabled);
+        console.log('searchBuild_endTime.disabled:', endTimeField.disabled);
+      }
+      
+      // Form validation function
+      function validateForm() {
+        // Get the checked time range type
+        var timeRangeType = 'relative';
+        var radioButtons = document.getElementsByName('timeRangeType');
+        for (var i = 0; i < radioButtons.length; i++) {
+          if (radioButtons[i].checked) {
+            timeRangeType = radioButtons[i].value;
+            break;
+          }
+        }
+        
+        // Clear unwanted parameters before submission
+        if (timeRangeType === 'relative') {
+          // Clear absolute time range values to prevent them from being sent in the request
+          document.getElementById('searchBuild_startTime').value = '';
+          document.getElementById('searchBuild_endTime').value = '';
+        } else {
+          // Clear relative time range values to prevent them from being sent in the request
+          document.getElementById('searchBuild_range').value = '';
+          document.getElementById('searchBuild_rangeUnits').value = '';
+        }
+        
+        return true;
+      }
+      
+      // Initialize form on window load
+      window.onload = function() {
+        console.log('Build Metrics Plugin: Window loaded, initializing form...');
+        
+        // Get elements using native JavaScript
+        var rangeField = document.getElementById('searchBuild_range');
+        var rangeUnitsField = document.getElementById('searchBuild_rangeUnits');
+        var startTimeField = document.getElementById('searchBuild_startTime');
+        var endTimeField = document.getElementById('searchBuild_endTime');
+        var relativeBtn = document.getElementById('searchBuild_timeRangeType_RELATIVE');
+        var absoluteBtn = document.getElementById('searchBuild_timeRangeType_ABSOLUTE');
+        
+        // Check if elements exist
+        console.log('Elements found:');
+        console.log('searchBuild_range:', rangeField);
+        console.log('searchBuild_rangeUnits:', rangeUnitsField);
+        console.log('searchBuild_startTime:', startTimeField);
+        console.log('searchBuild_endTime:', endTimeField);
+        console.log('Relative button:', relativeBtn);
+        console.log('Absolute button:', absoluteBtn);
+        
+        // Get the checked time range type
+        var selectedType = 'relative';
+        
+        console.log('Initial button states:');
+        console.log('Relative button checked:', relativeBtn.checked);
+        console.log('Absolute button checked:', absoluteBtn.checked);
+        
+        // Determine which type is selected
+        if (absoluteBtn.checked) {
+          selectedType = 'absolute';
+        }
+        
+        console.log('Initializing time range with type:', selectedType);
+        
+        // Initialize time range selection based on the checked type
+        timeRangeTypeSelected(selectedType);
+      };
+    ]]></script>
 	</l:header>
   
   
@@ -47,9 +155,10 @@
     <h1><img src="${rootURL}/plugin/build-metrics/icons/build-metrics.png" /> ${%Build Metrics Plugin} </h1>
 	    <hr />
 	    <strong>${%Search criteria}</strong><br/>
-	    <form name="searchBuildStat" action="getBuildStats" method="get" class="globalBuildStatsForm" id="searchBuildStat">
+	    <form name="searchBuildStat" action="getBuildStats" method="get" class="globalBuildStatsForm" id="searchBuildStat" onsubmit="return validateForm();">
 	    <label for="label">Label for Search Results : </label>
       <input type="text" id="searchBuild_label" name="label" size="20" value="Search Results"/><br/>
+      <input type="radio" id="searchBuild_timeRangeType_RELATIVE" name="timeRangeType" value="relative" checked="true" onchange="timeRangeTypeSelected(this.value);" />${%Relative time range}
       <label for="range">Show builds for the last : </label>
 	    <input type="text" id="searchBuild_range" name="range" size="5" value="2"/>
 	    <select id="searchBuild_rangeUnits" name="rangeUnits">
@@ -59,6 +168,14 @@
         <option>Years</option>
 	    </select>
       <br/>
+      <input type="radio" id="searchBuild_timeRangeType_ABSOLUTE" name="timeRangeType" value="absolute" onchange="timeRangeTypeSelected(this.value);" />${%Absolute time range}
+      <label for="startTime">${%Start time} : </label>
+      <input type="text" id="searchBuild_startTime" name="startTime" size="25" placeholder="yyyy-MM-dd HH:mm:ss" 
+             value="${it.getStartDateDefault()}" disabled="true" />
+      <label for="endTime">${%End time} : </label>
+      <input type="text" id="searchBuild_endTime" name="endTime" size="25" placeholder="yyyy-MM-dd HH:mm:ss" 
+             value="${it.getEndDateDefault()}" disabled="true" />
+      <br/>
 	      ${%Filters} :
 	      <ul style="margin-top: 4px;">
 	      	<li>
@@ -66,9 +183,9 @@
 		      <input type="radio" id="searchBuild_jobFilteringType_REGEX" name="jobFilteringType" value="${FIELD_FILTER_REGEX}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_jobNameRegex', 'searchBuild_jobFilter');" />
 		      ${%Job name regex} :
 		      <input type="text" id="searchBuild_jobNameRegex" 
-		      		 disabled="true" name="jobNameRegex" size="20"
-		      		 onblur="$('searchBuild_jobFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
-		      />
+      		 disabled="true" size="40"
+      		 onblur="$('searchBuild_jobFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
+      />
 		      <input id="searchBuild_jobFilter" type="hidden" name="jobFilter" value="${escapedJobFilter}" />
 		    </li>
 		    <li>
@@ -78,9 +195,9 @@
 		      <input type="radio" id="searchBuild_nodeFilteringType_REGEX" name="nodeFilteringType" value="${FIELD_FILTER_REGEX}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_nodeNameRegex', 'searchBuild_nodeFilter');" />
 		      ${%Node name regex} :
 		      <input type="text" id="searchBuild_nodeNameRegex" 
-		      		 disabled="true" name="nodeNameRegex" size="10"
-		      		 onblur="$('searchBuild_nodeFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
-		      />
+      		 disabled="true" size="30"
+      		 onblur="$('searchBuild_nodeFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
+      />
 		      <input id="searchBuild_nodeFilter" type="hidden" name="nodeFilter" value="${escapedNodeFilter}" />
 	      	</li>
 		    <li>
@@ -90,9 +207,9 @@
 		      <input type="radio" id="searchBuild_launcherFilteringType_REGEX" name="launcherFilteringType" value="${FIELD_FILTER_REGEX}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_launcherNameRegex', 'searchBuild_launcherFilter');" />
 		      ${%Username regex} :
 		      <input type="text" id="searchBuild_launcherNameRegex" 
-		      		 disabled="true" name="launcherNameRegex" size="10"
-		      		 onblur="$('searchBuild_launcherFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
-		      />
+      		 disabled="true" size="30"
+      		 onblur="$('searchBuild_launcherFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
+      />
 		      <input id="searchBuild_launcherFilter" type="hidden" name="launcherFilter" value="${escapedLauncherFilter}" />
 	      	</li>
 		    <li>
@@ -100,9 +217,9 @@
 		      <input type="radio" id="searchBuild_causeFilteringType_REGEXSYSTEM" name="causeFilteringType" value="${CAUSE_SYSTEM_REGEX}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_causeNameRegex', 'searchBuild_causeFilter');" />
 		      ${%Cause regex} :
 		      <input type="text" id="searchBuild_causeNameRegex" 
-		      		 disabled="true" name="causeNameRegex" size="10"
-		      		 onblur="$('searchBuild_causeFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
-		      />
+      		 disabled="true" size="30"
+      		 onblur="$('searchBuild_causeFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
+      />
 		      <input id="searchBuild_causeFilter" type="hidden" name="causeFilter" value="${escapedCauseFilter}" />
 	      	</li>
 	      </ul>
@@ -131,12 +248,12 @@
 		  }
 		  if($('searchBuild_launcherFilter').value.indexOf(LAUNCHER_SYSTEM_REGEX) != -1){
 		  	  $('searchBuild_launcherFilteringType_REGEXSYSTEM').checked = 'checked';
- 		 	  $('searchBuild_launcherFilteringType_REGEXSYSTEM').onchange();
+	 		  $('searchBuild_launcherFilteringType_REGEXSYSTEM').onchange();
 		  	  $('searchBuild_launcherNameRegex').disabled = true;
 		  } else if($('searchBuild_launcherFilter').value.indexOf(FIELD_FILTER_REGEX) != -1){
 		  	  $('searchBuild_launcherFilteringType_REGEX').checked = 'checked';
 		  	  initializeRegexField('searchBuild_launcherNameRegex', ESCAPED_LAUNCHER_FILTER);
- 		 	  $('searchBuild_launcherFilteringType_REGEX').onchange();
+	 		  $('searchBuild_launcherFilteringType_REGEX').onchange();
 		  	  $('searchBuild_launcherNameRegex').disabled = false;
 		  } else if($('searchBuild_launcherFilter').value.indexOf(FIELD_FILTER_ALL) != -1){
 		  	  $('searchBuild_launcherFilteringType_ALL').checked = 'checked';

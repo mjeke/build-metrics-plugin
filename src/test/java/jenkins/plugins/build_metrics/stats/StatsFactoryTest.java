@@ -16,7 +16,7 @@ public class StatsFactoryTest {
 	@Test
 	public void testFailureRate(){
 		ArrayList<JobBuildSearchResult> jbsr = new ArrayList<JobBuildSearchResult>();
-		BuildMetricsSearch bms = new BuildMetricsSearch("", 2, "", "", "", "", "");
+		BuildMetricsSearch bms = new BuildMetricsSearch("", 2, "", null, null, "", "", "", "");
 		jbsr.add(createJobResult("build job 1", true));
 		jbsr.add(createJobResult("build job 1", false));
 		StatsFactory sf = StatsFactory.generateStats(jbsr,bms);

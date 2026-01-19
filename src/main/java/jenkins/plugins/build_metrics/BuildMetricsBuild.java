@@ -90,4 +90,26 @@ public class BuildMetricsBuild {
         public String getBuildUrl() {
             return this.buildUrl;
         }
+        
+        /**
+         * Format duration in milliseconds to human-readable format like "2 hr 16 min" or "2 min 58 sec"
+         * @return Formatted duration string
+         */
+        public String getFormattedDuration() {
+            long ms = this.duration;
+            long seconds = ms / 1000;
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
+            
+            if (days > 0) {
+                return String.format("%d d %d hr", days, hours % 24);
+            } else if (hours > 0) {
+                return String.format("%d hr %d min", hours, minutes % 60);
+            } else if (minutes > 0) {
+                return String.format("%d min %d sec", minutes, seconds % 60);
+            } else {
+                return String.format("%d sec", seconds);
+            }
+        }
 }

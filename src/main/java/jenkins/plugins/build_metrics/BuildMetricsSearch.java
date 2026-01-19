@@ -13,15 +13,19 @@ public class BuildMetricsSearch {
 	private String label;
 	private int range;
 	private String rangeUnits;
+	private Long startTime;
+	private Long endTime;
 	private String jobFilter;
 	private String nodeFilter; 
 	private String launcherFilter;
 	private String causeFilter;
 	
-	public BuildMetricsSearch(String label, int range, String rangeUnits, String jobFilter, String nodeFilter, String launcherFilter, String causeFilter){
+	public BuildMetricsSearch(String label, int range, String rangeUnits, Long startTime, Long endTime, String jobFilter, String nodeFilter, String launcherFilter, String causeFilter){
 		this.label = label;
 		this.range = range;
 		this.rangeUnits = rangeUnits;
+		this.startTime = startTime;
+		this.endTime = endTime;
 		this.jobFilter = jobFilter;
 		this.nodeFilter = nodeFilter; 
 		this.launcherFilter = launcherFilter;
@@ -76,6 +80,20 @@ public class BuildMetricsSearch {
 	}
 	public void setCauseFilter(String causeFilter) {
 		this.causeFilter = causeFilter;
+	}
+	@Exported
+	public Long getStartTime() {
+		return startTime;
+	}
+	public void setStartTime(Long startTime) {
+		this.startTime = startTime;
+	}
+	@Exported
+	public Long getEndTime() {
+		return endTime;
+	}
+	public void setEndTime(Long endTime) {
+		this.endTime = endTime;
 	}
 	
 }

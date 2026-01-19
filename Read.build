@@ -1,0 +1,12 @@
+ubuntu:
+export JAVA_HOME=/opt/openjdk-8u342-b07/
+export MAVEN_HOME=/opt/apache-maven-3.6.3
+export PATH=$MAVEN_HOME/bin:$JAVA_HOME/bin:$PATH
+mvn clean package -U
+
+windows:
+set JAVA_HOME=C:\openjdk-8u342-b07\
+set MAVEN_HOME=C:\apache-maven-3.6.3
+set PATH=%MAVEN_HOME%\bin;%JAVA_HOME%\bin;%PATH%
+mvn clean package -U
+
